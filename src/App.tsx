@@ -115,21 +115,22 @@ function Shards({ count = 1200, duration = 2.6 }) {
       const p = Math.min(1, Math.max(0, (t - phases[i] * 0.6) / duration));
       const pos = seeds[i].clone().lerp(targets[i], easeOutCubic(p));
       const scale = Math.max(0.1, 1 - p * 0.9);
-      const rx = (pos.x + t * 0.6) * 0.15;
-      const ry = (pos.y - t * 0.4) * 0.2;
-      const rz = (pos.z + t * 0.2) * 0.25;
       dummy.position.copy(pos);
-      dummy.rotation.set(rx, ry, rz);
+      dummy.rotation.set(
+        (pos.x + t * 0.6) * 0.15,
+        (pos.y - t * 0.4) * 0.2,
+        (pos.z + t * 0.2) * 0.25
+      );
       dummy.scale.setScalar(scale);
       dummy.updateMatrix();
       ref.current.setMatrixAt(i, dummy.matrix);
       const c = new THREE.Color().setHSL(0.65 + 0.2 * (1 - p), 0.75, 0.6);
-      // @ts-ignore - instanceColor will exist when using InstancedMesh with colors
+      // @ts-ignore - instance colors exist at runtime
       ref.current.setColorAt(i, c);
     }
-    ref.current.instanceMatrix.needsUpdate = True;
-    // @ts-ignore
-    if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = True;
+    ref.current.instanceMatrix.needsUpdate = true;
+    // @ts-ignore - instanceColor exists at runtime
+    if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
   });
 
   return (
@@ -142,7 +143,7 @@ function Shards({ count = 1200, duration = 2.6 }) {
 
 function Abstracts() {
   const group = useRef<THREE.Group>(null!);
-  useWindowSize(); // keep responsive feel even if not used directly
+  useWindowSize(); // keep responsive feel
   useFrame((state) => {
     const x = (state.pointer.x || 0) * 0.4;
     const y = (state.pointer.y || 0) * 0.2;
@@ -173,9 +174,9 @@ function Abstracts() {
 
 function FlipOnScroll() {
   const ref = useRef<THREE.Group>(null!);
-  const scroll = useScroll();
+  const data = useScroll();
   useFrame(() => {
-    const s = scroll.scroll.current; // 0..1
+    const s = data.offset; // 0..1 current scroll offset
     const flip = Math.sin(s * Math.PI * 2);
     ref.current.rotation.y = flip * Math.PI;
     ref.current.position.z = -2 + s * 2;
@@ -199,7 +200,6 @@ function easeOutCubic(x: number) {
 }
 
 function HeroTitle({ lang }: { lang: Lang }) {
-  // Floating outline title in 3D using troika Text
   const t = i18n[lang].hero.title;
   return (
     <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.6}>
@@ -210,7 +210,6 @@ function HeroTitle({ lang }: { lang: Lang }) {
         maxWidth={12}
         lineHeight={1}
         letterSpacing={0.02}
-        // troika outline glow
         outlineWidth={0.025}
         outlineColor="#93c5fd"
         outlineOpacity={1}
@@ -226,7 +225,6 @@ function HeroTitle({ lang }: { lang: Lang }) {
 function Scene({ lang }: { lang: Lang }) {
   return (
     <>
-      {/* Subtle starfield for depth */}
       <Stars radius={80} depth={40} count={1200} factor={4} fade />
       <ambientLight intensity={0.4} />
       <directionalLight intensity={1.2} position={[4, 6, 6]} />
@@ -291,7 +289,6 @@ export default function App() {
   const [launched, setLaunched] = useState(false);
 
   useEffect(() => {
-    // Respect browser language on first load
     const n = navigator?.language?.toLowerCase?.() || "";
     if (n.startsWith("en")) setLang("en");
     if (n.startsWith("ru")) setLang("ru");
@@ -299,7 +296,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full text-white selection:bg-cyan-500/40">
-      {/* Background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-slate-950 to-black" />
         <div className="absolute -top-1/3 left-1/2 -translate-x-1/2 w-[120vmax] h-[120vmax] rounded-full opacity-30 blur-3xl"
@@ -310,7 +306,6 @@ export default function App() {
 
       <LanguageSwitcher lang={lang} setLang={setLang} />
 
-      {/* 3D Layer */}
       <div className="fixed inset-0 -z-0">
         <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
           <color attach="background" args={["#020617"]} />
@@ -322,9 +317,7 @@ export default function App() {
         </Canvas>
       </div>
 
-      {/* Overlay UI */}
       <main className="relative z-10 flex flex-col items-center">
-        {/* HERO */}
         <section className="w-full flex flex-col items-center justify-center text-center pt-32 pb-24 gap-8">
           {logoUrl ? (
             <img src={logoUrl} alt="IZ Hair Trend logo" className="w-40 h-auto opacity-80" />
@@ -334,7 +327,7 @@ export default function App() {
             <p className="text-white/70 text-base md:text-lg">{copy.hero.sub}</p>
           </div>
 
-          <PrimaryButton onClick={() => setLaunched(True)}>
+          <PrimaryButton onClick={() => setLaunched(true)}>
             {copy.hero.cta}
           </PrimaryButton>
 
@@ -357,7 +350,6 @@ export default function App() {
           </AnimatePresence>
         </section>
 
-        {/* ABOUT */}
         <section className="relative w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 px-6 pb-24">
           <div className="col-span-1 md:col-span-2">
             <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-4">
@@ -375,7 +367,6 @@ export default function App() {
           ))}
         </section>
 
-        {/* ACTION */}
         <section className="w-full max-w-4xl text-center px-6 pb-28">
           <h3 className="text-2xl md:text-3xl font-semibold mb-4">{copy.sections.actionTitle}</h3>
           <p className="text-white/80 mb-6">{copy.sections.actionText}</p>
@@ -391,7 +382,6 @@ export default function App() {
         </section>
       </main>
 
-      {/* FOOTER */}
       <footer className="relative z-10 w-full px-6 pb-12">
         <div className="max-w-6xl mx-auto rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-white/80">
